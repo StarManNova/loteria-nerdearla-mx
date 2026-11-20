@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1b1033">
+<title>Lotería Nerdearla MX</title>
+<meta name="description" content="Lotería mexicana jugable en el navegador. Hecha para el reto AWS en Nerdearla México 2026.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%231b1033'/%3E%3Ctext y='74' x='50' font-size='62' text-anchor='middle'%3E%F0%9F%8C%B5%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ======================= PANTALLA DE INICIO ======================= -->
+<section id="screen-start" class="screen is-active">
+  <div class="papel-picado" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <header class="hero">
+    <p class="hero__kicker">AWS · Nerdearla México 2026</p>
+    <h1 class="hero__title">Lotería <span>Mexicana</span></h1>
+    <p class="hero__sub">El cantor grita, tú pones el frijol. <br>¿Te la rifas?</p>
+  </header>
+
+  <div class="setup card-panel">
+    <fieldset class="setup__group">
+      <legend>¿Cuántas tablas?</legend>
+      <div class="chips" role="radiogroup" aria-label="Número de tablas">
+        <button class="chip is-on" role="radio" aria-checked="true" data-opt="boards" data-value="1">1 tabla</button>
+        <button class="chip" role="radio" aria-checked="false" data-opt="boards" data-value="2">2 tablas</button>
+      </div>
+    </fieldset>
+
+    <fieldset class="setup__group">
+      <legend>Velocidad del cantor</legend>
+      <div class="chips" role="radiogroup" aria-label="Velocidad">
+        <button class="chip" role="radio" aria-checked="false" data-opt="speed" data-value="5200">Sabrosa</button>
+        <button class="chip is-on" role="radio" aria-checked="true" data-opt="speed" data-value="3800">Normal</button>
+        <button class="chip" role="radio" aria-checked="false" data-opt="speed" data-value="2400">Al chile</button>
+      </div>
+    </fieldset>
+
+    <fieldset class="setup__group">
+      <legend>¿Qué hay que llenar?</legend>
+      <div class="chips" role="radiogroup" aria-label="Patrón para ganar">
+        <button class="chip is-on" role="radio" aria-checked="true" data-opt="pattern" data-value="linea">Línea</button>
+        <button class="chip" role="radio" aria-checked="false" data-opt="pattern" data-value="esquinas">4 esquinas</button>
+        <button class="chip" role="radio" aria-checked="false" data-opt="pattern" data-value="centro">Centro</button>
+        <button class="chip" role="radio" aria-checked="false" data-opt="pattern" data-value="llena">Tabla llena</button>
+      </div>
+    </fieldset>
+
+    <fieldset class="setup__group">
+      <legend>Extras</legend>
+      <div class="chips">
+        <button class="chip is-on" data-toggle="voice" aria-pressed="true">🔊 Voz del cantor</button>
+        <button class="chip is-on" data-toggle="verso" aria-pressed="true">📜 Versos</button>
+        <button class="chip" data-toggle="auto" aria-pressed="false">✋ Marcado automático</button>
+      </div>
+    </fieldset>
+
+    <button id="btn-play" class="btn btn--primary btn--xl">Córrele, a jugar 🫘</button>
+    <p class="setup__hint">Tip: con el marcado manual, si pones frijol en una carta que no cantaron, te la cachan al gritar lotería.</p>
+  </div>
+
+  <footer class="start-foot">
+    <p>Desplegada en <strong>AWS Amplify</strong> · 54 cartas · Hecha con HTML, CSS y JS puro</p>
+  </footer>
+</section>
+
+<!-- ======================= PANTALLA DE JUEGO ======================= -->
+<section id="screen-game" class="screen">
+  <header class="topbar">
+    <button id="btn-back" class="icon-btn" aria-label="Volver al inicio">←</button>
+    <div class="topbar__stats">
+      <span class="stat"><b id="stat-called">0</b>/54 cantadas</span>
+      <span class="stat"><b id="stat-time">0:00</b></span>
+      <span class="stat stat--goal">Meta: <b id="stat-goal">Línea</b></span>
+    </div>
+    <button id="btn-pause" class="icon-btn" aria-label="Pausar">⏸</button>
+  </header>
+
+  <main class="game">
+    <!-- El cantor -->
+    <div class="cantor">
+      <div class="cantor__card" id="cantor-card" aria-live="polite">
+        <div class="lcard lcard--big" id="current-card">
+          <span class="lcard__num">—</span>
+          <span class="lcard__art">🪅</span>
+          <span class="lcard__name">Prepárate…</span>
+        </div>
+      </div>
+      <p class="cantor__verso" id="cantor-verso">El cantor ya va a empezar.</p>
+
+      <div class="cantor__controls">
+        <button id="btn-next" class="btn btn--ghost">Cantar ya ▸</button>
+        <div class="timer-bar"><span id="timer-fill"></span></div>
+      </div>
+
+      <div class="called">
+        <p class="called__label">Ya cantadas</p>
+        <ul class="called__list" id="called-list" aria-label="Cartas ya cantadas"></ul>
+      </div>
+    </div>
+
+    <!-- Las tablas -->
+    <div class="boards" id="boards"></div>
+  </main>
+
+  <div class="actionbar">
+    <button id="btn-loteria" class="btn btn--loteria">¡LOTERÍA! 🎉</button>
+  </div>
+</section>
+
+<!-- ======================= MODALES ======================= -->
+<div class="overlay" id="overlay" hidden>
+  <div class="modal card-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <span class="modal__emoji" id="modal-emoji">🎉</span>
+    <h2 id="modal-title">¡Lotería!</h2>
+    <p id="modal-text">Ganaste.</p>
+    <div class="modal__stats" id="modal-stats"></div>
+    <div class="modal__actions">
+      <button id="btn-again" class="btn btn--primary">Otra vez 🔁</button>
+      <button id="btn-home" class="btn btn--ghost">Inicio</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<script src="script.js"></script>
+</body>
+</html>

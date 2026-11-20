@@ -1,0 +1,12 @@
+version: 1
+frontend:
+  phases:
+    build:
+      commands: []
+  artifacts:
+    # Sitio estático: no hay build, se publica la raíz del repo tal cual.
+    baseDirectory: /
+    files:
+      - '**/*'
+  cache:
+    paths: []
